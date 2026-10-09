@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Year 1: Fruits and Vegetables Matching Game</title>
+<style>
+  :root { --ink:#173b72; --green:#65b84b; --yellow:#fff0a8; --pink:#ffe5ef; --blue:#e5f3ff; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family: "Trebuchet MS", Arial, sans-serif; background:#f3fbff; color:#183153; }
+  .wrap { max-width:900px; margin:auto; padding:18px; }
+  header { text-align:center; background:linear-gradient(120deg,#fff2ae,#e5ffd9); border:3px solid #b8df8a; border-radius:24px; padding:20px 14px; }
+  h1 { margin:0 0 8px; color:#16813c; font-size:clamp(1.7rem,5vw,2.6rem); }
+  header p { margin:5px 0; font-size:1.05rem; }
+  .student { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin:14px 0; }
+  .student label { font-weight:bold; }
+  .student input { border:2px solid #b6d6f5; border-radius:10px; padding:9px; font-size:1rem; width:190px; }
+  .instructions { text-align:center; font-weight:bold; color:#214f91; margin:14px 0; }
+  .grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+  .card { display:flex; align-items:center; gap:12px; min-height:105px; padding:12px; background:white; border:2px solid #cfe5fa; border-radius:18px; box-shadow:0 3px 0 #e3eef8; }
+  .emoji { font-size:3.1rem; width:68px; text-align:center; flex-shrink:0; }
+  .item { flex:1; min-width:0; }
+  .item strong { display:block; margin-bottom:7px; color:#27528a; }
+  select { width:100%; padding:10px 8px; border:2px solid #b9d9f7; border-radius:10px; background:#fff; color:#173b72; font-size:1rem; }
+  .correct { border-color:#55b85b !important; background:#efffed !important; }
+  .incorrect { border-color:#f08aa4 !important; background:#fff0f3 !important; }
+  .feedback { font-size:.9rem; font-weight:bold; margin-top:5px; min-height:18px; }
+  .actions { display:flex; justify-content:center; gap:12px; flex-wrap:wrap; margin:20px 0; }
+  button { border:0; border-radius:14px; padding:13px 20px; font-size:1.05rem; font-weight:bold; cursor:pointer; box-shadow:0 4px 0 #d1dce8; }
+  #check { background:#16813c; color:white; }
+  #reset { background:#ffda67; color:#543d00; }
+  button:focus, select:focus, input:focus { outline:3px solid #70baff; outline-offset:2px; }
+  #result { text-align:center; font-size:1.25rem; font-weight:bold; background:white; border-radius:16px; padding:14px; min-height:54px; border:2px dashed #8ecb75; }
+  footer { text-align:center; margin:20px 0 5px; color:#367c32; font-size:1.1rem; font-weight:bold; }
+  @media (max-width:620px) { .grid { grid-template-columns:1fr; } .card { min-height:94px; } .emoji { font-size:2.7rem; width:58px; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>🍎 Fruits and Vegetables 🥕</h1>
+  <p><strong>Year 1 English</strong></p>
+  <p>Match each picture with the correct word!</p>
+</header>
+<div class="student">
+  <label>Name: <input id="studentName" placeholder="Type your name"></label>
+  <label>Class: <input id="studentClass" placeholder="Type your class"></label>
+</div>
+<p class="instructions">Choose the correct word from each box, then click CHECK MY ANSWERS.</p>
+<div class="grid" id="game"></div>
+<div class="actions">
+  <button id="check" type="button">✅ Check My Answers</button>
+  <button id="reset" type="button">🔄 Try Again</button>
+</div>
+<div id="result" aria-live="polite">🌟 You can do it! 🌟</div>
+<footer>🥦 Great job, little learner! Keep practising! 🍓</footer>
+</div>
+<script>
+const questions = [
+  {emoji:"🍎", name:"apple"},
+  {emoji:"🍌", name:"banana"},
+  {emoji:"🥕", name:"carrot"},
+  {emoji:"🥦", name:"broccoli"},
+  {emoji:"🍅", name:"tomato"},
+  {emoji:"🍇", name:"grapes"},
+  {emoji:"🥬", name:"lettuce"},
+  {emoji:"🥔", name:"potato"},
+  {emoji:"🍓", name:"strawberry"},
+  {emoji:"🥒", name:"cucumber"}
+];
+const options = [...questions.map(q=>q.name)].sort(()=>Math.random()-.5);
+const game = document.getElementById('game');
+questions.forEach((q,i) => {
+  const card = document.createElement('section');
+  card.className = 'card';
+  card.innerHTML = `<div class="emoji" aria-hidden="true">${q.emoji}</div>
+    <div class="item"><strong>Picture ${i+1}</strong>
+    <select aria-label="Choose the name for picture ${i+1}" data-answer="${q.name}">
+      <option value="">-- Choose a word --</option>
+      ${options.map(word=>`<option value="${word}">${word}</option>`).join('')}
+    </select><div class="feedback"></div></div>`;
+  game.appendChild(card);
+});
+document.getElementById('check').addEventListener('click', () => {
+  const selects = [...document.querySelectorAll('select')];
+  let score = 0, unanswered = 0;
+  selects.forEach(s => {
+    const card = s.closest('.card');
+    const feedback = card.querySelector('.feedback');
+    card.classList.remove('correct','incorrect');
+    if (!s.value) {
+      unanswered++;
+      card.classList.add('incorrect');
+      feedback.textContent = 'Choose an answer.';
+    } else if (s.value === s.dataset.answer) {
+      score++;
+      card.classList.add('correct');
+      feedback.textContent = '✓ Correct!';
+    } else {
+      card.classList.add('incorrect');
+      feedback.textContent = 'Try again!';
+    }
+  });
+  const name = document.getElementById('studentName').value.trim();
+  const greeting = name ? `${name}, ` : '';
+  const result = document.getElementById('result');
+  if (score === questions.length) {
+    result.textContent = `🎉 Excellent, ${greeting}you got ${score} out of ${questions.length}! Perfect score!`;
+  } else {
+    result.textContent = `⭐ ${greeting}Your score: ${score} / ${questions.length}. ${unanswered ? unanswered + ' unanswered. ' : ''}Try again and check the pink boxes.`;
+  }
+});
+document.getElementById('reset').addEventListener('click', () => {
+  document.querySelectorAll('select').forEach(s => { s.value=''; s.closest('.card').classList.remove('correct','incorrect'); s.closest('.card').querySelector('.feedback').textContent=''; });
+  document.getElementById('result').textContent='🌟 You can do it! 🌟';
+});
+</script>
+</body>
+</html>
